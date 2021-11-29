@@ -20,6 +20,7 @@ output the shallow network models trained by our method.
 python3 src/method.py --cn 0.1 --snpeff 260 --repeat 10 --path out/model/v21.11.19.tmp/ > out/model/v21.11.19.tmp/terminal.txt
 ```
 
+
 ##Table
 Read training data in data/Challenge, test data in data/Evaluation, and csv files in ./out/SNPeff, and given parameters of CN, SNPeff and the number of repeats,
 output the table that indicates the performance of our method under various parameters. 

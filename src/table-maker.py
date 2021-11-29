@@ -69,45 +69,49 @@ CN, SNPeff, true = read_all_data('data/Challenge/', '_challenge_CNs.txt', 'out/S
 full_data = np.concatenate([CN, SNPeff.T])
 num_CN_gene = CN.shape[0]
 
-# Test data
-CN_test, SNPeff_test, true_test = read_all_data('data/Evaluation/', '_evaluation_CNs.txt', 'out/SNPeff/SNPeff_test.csv')
-full_data_test = np.concatenate([CN_test, SNPeff_test.T])
-
 # gene list
 gene_list = np.array(pd.read_csv('out/SNPeff/variant_gene_list.csv', sep = '\t', header = None, dtype='str'))
-
-# shuffle
-train_data, train_true = random_shuffle(full_data, true)
-val_data, val_true = random_shuffle(full_data_test, true_test)
 
 
 
 #############################################
 ## Our method
 #############################################
-
-cand1s = [candidate1_generation(ct, num_CN_gene, train_data) for ct in cts]
-cand2s = [candidate2_generation(st, num_CN_gene, train_data, train_true) for st in sts]
-
-num_cands = [[0. for st in sts] for ct in cts]
 approx_aucs = [[0. for st in sts] for ct in cts]
 exact_aucs = [[0. for st in sts] for ct in cts]
 approx_accs = [[0. for st in sts] for ct in cts]
 exact_accs = [[0. for st in sts] for ct in cts]
-ctrs = [[0. for st in sts] for ct in cts]
+# ctrs = [[0. for st in sts] for ct in cts]
+
+
+full_num = full_data.shape[1]
+val_size = (int) (full_num / num_repeat)
+print(full_num, val_size)
 
 for idx_ct in range(len(cts)):
     for idx_st in range(len(sts)):
 
+        full_data, true = random_shuffle(full_data, true)
+
         print("ct:", cts[idx_ct], ", st:", sts[idx_st])
         
-        candidate = np.concatenate((cand1s[idx_ct], np.array(cand2s[idx_st]) + num_CN_gene))
-        num_cand = len(candidate)
-
         ctr = 0
         exact_auc, approx_auc = [0, 0]
         exact_acc, approx_acc = [0, 0]
+
         for i in range(num_repeat):
+            
+            if (i > 0):
+                full_data = np.roll(full_data, shift=val_size, axis=1)
+                true = np.roll(true, shift=val_size, axis=0)
+
+            train_data, train_true = full_data[:, val_size:], true[val_size:]
+            val_data, val_true = full_data[:, :val_size], true[:val_size]
+
+            cand1 = candidate1_generation(cts[idx_ct], num_CN_gene, train_data)
+            cand2 = candidate2_generation(sts[idx_st], num_CN_gene, train_data, train_true)
+            candidate = np.concatenate((cand1, np.array(cand2) + num_CN_gene))
+
             w = model_generation(train_data, train_true, val_data, val_true, candidate)
             tmp_approx_acc, tmp_exact_acc, tmp_approx_auc, tmp_exact_auc = profile(val_data, val_true, candidate, w)
             
@@ -119,9 +123,6 @@ for idx_ct in range(len(cts)):
             if tmp_approx_auc != 0:
                 ctr += 1
 
-        num_cands[idx_ct][idx_st] = num_cand
-        ctrs[idx_ct][idx_st] = ctr
-
         if ctr != 0:
             approx_aucs[idx_ct][idx_st], exact_aucs[idx_ct][idx_st] = [approx_auc / ctr, exact_auc / num_repeat]
             approx_accs[idx_ct][idx_st], exact_accs[idx_ct][idx_st] = [approx_acc / ctr, exact_acc / num_repeat]
@@ -132,10 +133,8 @@ for idx_ct in range(len(cts)):
         print("acc(approx/exact):", approx_accs[idx_ct][idx_st], exact_accs[idx_ct][idx_st])
         print("auc(approx/exact):", approx_aucs[idx_ct][idx_st], exact_aucs[idx_ct][idx_st])
 
-        pd.DataFrame(num_cands, index=cts).to_csv(path + 'num_cands.csv', sep = ',', header = sts, index = True)
         pd.DataFrame(approx_aucs, index=cts).to_csv(path + 'approx_aucs.csv', sep = ',', header = sts, index = True)
         pd.DataFrame(exact_aucs, index=cts).to_csv(path + 'exact_aucs.csv', sep = ',', header = sts, index = True)
         pd.DataFrame(approx_accs, index=cts).to_csv(path + 'approx_accs.csv', sep = ',', header = sts, index = True)
         pd.DataFrame(exact_accs, index=cts).to_csv(path + 'exact_accs.csv', sep = ',', header = sts, index = True)
-        pd.DataFrame(ctrs, index=cts).to_csv(path + 'ctrs.csv', sep = ',', header = sts, index = True)
 
