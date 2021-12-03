@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Code for read, modify, and write CN/SNPeff/model data
+Code for read, modify, and write CN/SNPeff data for iDASH2020
 
 @author: Jai Hyun Park (jhyunp@snu.ac.kr)
 """

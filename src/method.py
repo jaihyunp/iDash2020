@@ -80,7 +80,7 @@ def candidate2_generation(snpeff_thres, num_CN_gene, train_data, train_true):
 ## Shallow Network  ##
 ######################
 
-def generate_model(train_data, train_label, val_data, val_label, batch_size = 32, epochs = 50, num_nodes = 128, dropout = 0.9, verbose = 0):
+def generate_model(train_data, train_label, val_data, val_label, batch_size = 32, epochs = 50, num_nodes = 64, dropout = 0.9, verbose = 0):
     train_label_encoded = tf.one_hot(train_label, 11)
     val_label_encoded = tf.one_hot(val_label, 11)
     

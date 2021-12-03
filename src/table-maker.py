@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Code for generating a result tables
+Code for finding the best pair of parameter (d_cn, k_var).
+In this script, we denote d_cn as ct (abbr. CN threshold)
+and k_var as st (abbr. SNPeff threshold).
 
 @author: Jai Hyun Park (jhyunp@snu.ac.kr)
 """
@@ -60,7 +62,6 @@ print("* Experiment on ct = (", cn_start, ":", cn_step, ":", cn_stop, "), st = (
 print("* repeat ", num_repeat, "times, and the results will be written in", path)
 
 
-
 #############################################
 ## Load data
 #############################################
@@ -73,7 +74,6 @@ num_CN_gene = CN.shape[0]
 gene_list = np.array(pd.read_csv('out/SNPeff/variant_gene_list.csv', sep = '\t', header = None, dtype='str'))
 
 
-
 #############################################
 ## Our method
 #############################################
@@ -81,8 +81,6 @@ approx_aucs = [[0. for st in sts] for ct in cts]
 exact_aucs = [[0. for st in sts] for ct in cts]
 approx_accs = [[0. for st in sts] for ct in cts]
 exact_accs = [[0. for st in sts] for ct in cts]
-# ctrs = [[0. for st in sts] for ct in cts]
-
 
 full_num = full_data.shape[1]
 val_size = (int) (full_num / num_repeat)
@@ -99,6 +97,7 @@ for idx_ct in range(len(cts)):
         exact_auc, approx_auc = [0, 0]
         exact_acc, approx_acc = [0, 0]
 
+        # Cross Validation
         for i in range(num_repeat):
             
             if (i > 0):
